@@ -10,7 +10,6 @@ module tb ();
   initial begin
     $dumpfile("tb.vcd");
     $dumpvars(0, tb);
-    #1;
   end
 
   // Testbench signals
@@ -35,10 +34,10 @@ module tb ();
       .rst_n   (rst_n)
   );
 
-  // Clock generation
+  // Clock generation (100 MHz)
   initial begin
     clk = 0;
-    forever #5 clk = ~clk;  // 100 MHz clock
+    forever #5 clk = ~clk;
   end
 
   // Test sequence
@@ -51,15 +50,13 @@ module tb ();
 
     #10;
 
-    // Test Case 1: Match
-    // A C G T = 00 01 10 11 => 8'b00011011
+    // Test Case 1: Match (A C G T => 00 01 10 11 => 00011011)
     ui_in  = 8'b00011011;
     uio_in = 8'b00011011;
     #10;
     $display("Test 1 - Expected: 1, Actual: %b", uo_out[0]);
 
-    // Test Case 2: No Match
-    // A C G T vs. C C G T
+    // Test Case 2: No Match (ACGT vs. CCGT)
     ui_in  = 8'b00011011;
     uio_in = 8'b01011011;
     #10;
@@ -75,4 +72,16 @@ module tb ();
     ui_in  = 8'b11111111;
     uio_in = 8'b11111111;
     #10;
-    $d
+    $display("Test 4 - Expected: 1, Actual: %b", uo_out[0]);
+
+    // Test Case 5: Partial mismatch
+    ui_in  = 8'b10101010;
+    uio_in = 8'b11111111;
+    #10;
+    $display("Test 5 - Expected: 0, Actual: %b", uo_out[0]);
+
+    $finish;
+  end
+
+endmodule
+
