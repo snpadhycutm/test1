@@ -18,7 +18,7 @@ module tt_um_gene_matcher (
 );
 
     // Compare the sequences
-    wire match = (ui_in == uio_in);
+    wire match = (ui_in == uio_in);         
 
     // Output match result on uo_out[0], other bits are 0
     assign uo_out  = {7'b0000000, match};
