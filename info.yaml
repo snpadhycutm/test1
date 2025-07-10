@@ -1,7 +1,7 @@
 # Tiny Tapeout project information
 project:
   title:        "DNA Sequence Matcher"    # Project title
-  author:       "Your Name"               # Your name
+  author:       "CUTM"               # Your name
   discord:      "your_discord#1234"       # Optional
   description:  "Compares two DNA sequences and outputs match status."  # One-line description
   language:     "Verilog"                 # HDL language
