@@ -1,8 +1,8 @@
 `default_nettype none
-`default_nettype none
 `timescale 1ns / 1ps
 
 module tb ();
+
   reg clk;
   reg rst_n;
   reg ena;
@@ -12,7 +12,6 @@ module tb ();
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
 
-  // Instantiate the DUT
   tt_um_gene_matcher dut (
       .clk(clk),
       .rst_n(rst_n),
@@ -23,6 +22,8 @@ module tb ();
       .uio_out(uio_out),
       .uio_oe(uio_oe)
   );
+
 endmodule
+
 
 
