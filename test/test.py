@@ -4,71 +4,35 @@
 
 
 import cocotb
+from cocotb.triggers import RisingEdge, Timer
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles
-
 
 @cocotb.test()
 async def test_project(dut):
-    """Testbench for DUT using cocotb"""
+    """Cocotb test for tt_um_gene_matcher"""
 
+    cocotb.start_soon(Clock(dut.clk, 10, units="ns").start())  # 100 MHz clock
     dut._log.info("Starting testbench...")
 
-    # Set up a clock with 10us period (i.e., 100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
-    cocotb.start_soon(clock.start())
-
-    # Apply Reset (active low)
-    dut.rst_n.value = 0
     dut.ena.value = 1
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
-
-    await ClockCycles(dut.clk, 5)
-    dut.rst_n.value = 1  # Deassert reset
+    dut.rst_n.value = 0
+    await Timer(20, units="ns")
+    dut.rst_n.value = 1
     dut._log.info("Reset deasserted.")
 
-    # Wait for reset to propagate
-    await ClockCycles(dut.clk, 2)
+    # Helper function
+    async def check_match(ui, ref, expected):
+        dut.ui_in.value = ui
+        dut.uio_in.value = ref
+        await Timer(20, units="ns")
+        actual = dut.uo_out.value.integer & 1
+        assert actual == expected, f"Expected {expected}, got {actual}"
 
-    # === Test Case 1: ui_in + uio_in = 50 ===
-    dut.ui_in.value = 20
-    dut.uio_in.value = 30
-    await ClockCycles(dut.clk, 1)
+    # Test cases
+    await check_match(0b00011011, 0b00011011, 1)  # ACGT vs ACGT
+    await check_match(0b00011011, 0b01011011, 0)  # ACGT vs CCGT
+    await check_match(0b00000000, 0b00000000, 1)  # all zeros
+    await check_match(0b11111111, 0b11111111, 1)  # all ones
+    await check_match(0b10101010, 0b11111111, 0)  # mismatch
 
-    expected = 50
-    actual = dut.uo_out.value.integer
-    dut._log.info(f"Test Case 1: ui_in=20, uio_in=30 => uo_out={actual}")
-    assert actual == expected, f"Test Case 1 Failed: expected {expected}, got {actual}"
-
-    # === Test Case 2: ui_in + uio_in = 20 ===
-    dut.ui_in.value = 15
-    dut.uio_in.value = 5
-    await ClockCycles(dut.clk, 1)
-
-    expected = 20
-    actual = dut.uo_out.value.integer
-    dut._log.info(f"Test Case 2: ui_in=15, uio_in=5 => uo_out={actual}")
-    assert actual == expected, f"Test Case 2 Failed: expected {expected}, got {actual}"
-
-    # === Test Case 3: Edge Case - Zero ===
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
-    await ClockCycles(dut.clk, 1)
-
-    expected = 0
-    actual = dut.uo_out.value.integer
-    dut._log.info(f"Test Case 3: ui_in=0, uio_in=0 => uo_out={actual}")
-    assert actual == expected, f"Test Case 3 Failed: expected {expected}, got {actual}"
-
-    # === Test Case 4: Max values (255 + 255 = 510 mod 256 = 254) ===
-    dut.ui_in.value = 255
-    dut.uio_in.value = 255
-    await ClockCycles(dut.clk, 1)
-
-    expected = (255 + 255) % 256  # In case DUT is 8-bit adder
-    actual = dut.uo_out.value.integer
-    dut._log.info(f"Test Case 4: ui_in=255, uio_in=255 => uo_out={actual}")
-    assert actual == expected, f"Test Case 4 Failed: expected {expected}, got {actual}"
-
-    dut._log.info("All tests completed successfully.")
+    dut._log.info("All tests passed!")
