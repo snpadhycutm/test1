@@ -15,7 +15,7 @@ project:
 
   # List of your HDL source files (must be in ./src)
   source_files:
-    - "tt_um_gene_matcher.v"
+    - "project.v"
 
 # Pinout configuration for datasheet
 pinout:
